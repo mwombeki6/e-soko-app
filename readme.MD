@@ -15,12 +15,7 @@ Before you begin, ensure you have the following installed:
 
 Follow these steps to set up and run the mobile application:
 
-1. **Clone the Repository:**
 
-   ```bash
-   git clone https://github.com/laribright/gadgets-app-react-native.git
-   cd gadgets-app-react-native
-   ```
 
 2. **Install Dependencies:**
 
