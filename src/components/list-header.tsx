@@ -34,7 +34,7 @@ export const ListHeader = ({
               source={{ uri: 'https://via.placeholder.com/40' }}
               style={styles.avatarImage}
             />
-            <Text style={styles.avatarText}>Hello codewithlari</Text>
+            <Text style={styles.avatarText}>Hello erick</Text>
           </View>
         </View>
         <View style={styles.headerRight}>
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerLeft: {
-    flexDirection: 'row',
+    //flexDirection: 'row',
     alignItems: 'center',
   },
   headerRight: {
