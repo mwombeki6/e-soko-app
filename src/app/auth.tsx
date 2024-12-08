@@ -73,7 +73,7 @@ export default function Auth() {
 
       <View style={styles.container}>
         <Text style={styles.title}>Welcome</Text>
-        <Text style={styles.subtitle}>Please Authenticate to continue</Text>
+        <Text style={styles.subtitle}>Authenticate to continue</Text>
 
         <Controller
           control={control}
