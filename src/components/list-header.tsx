@@ -34,7 +34,7 @@ export const ListHeader = ({
               source={{ uri: 'https://via.placeholder.com/40' }}
               style={styles.avatarImage}
             />
-            <Text style={styles.avatarText}>Hello</Text>
+            
           </View>
         </View>
         <View style={styles.headerRight}>
