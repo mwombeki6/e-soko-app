@@ -72,8 +72,8 @@ export default function Auth() {
       <View style={styles.overlay} />
 
       <View style={styles.container}>
-        <Text style={styles.title}>Welcome</Text>
-        <Text style={styles.subtitle}>Authenticate to continue</Text>
+        <Text style={styles.title}>Get started!</Text>
+        
 
         <Controller
           control={control}
@@ -157,16 +157,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
-    width: '100%',
+    width: "100%",
   },
   title: {
     fontSize: 36,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 8,
+    marginBottom: 48,
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 10,
     color: '#ddd',
     marginBottom: 32,
   },
