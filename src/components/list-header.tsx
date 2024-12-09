@@ -4,12 +4,12 @@ import {
   Image,
   Pressable,
   StyleSheet,
-  Text,
+  
   TouchableOpacity,
   View,
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
-
+import { Text } from '@/components/ui/text';
 import { useCartStore } from '../store/cart-store';
 import { supabase } from '../lib/supabase';
 import { Tables } from '../types/database.types';
@@ -34,7 +34,7 @@ export const ListHeader = ({
               source={{ uri: 'https://via.placeholder.com/40' }}
               style={styles.avatarImage}
             />
-            
+            <Text style={styles.avatarText}>Hello</Text>
           </View>
         </View>
         <View style={styles.headerRight}>
