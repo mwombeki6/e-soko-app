@@ -30,7 +30,7 @@ export const setupStripePaymentSheet = async (totalAmount: number) => {
   }
 
   await initPaymentSheet({
-    merchantDisplayName: 'Codewithlari',
+    merchantDisplayName: 'CodeWarrior',
     paymentIntentClientSecret: paymentIntent,
     customerId: customer,
     customerEphemeralKeySecret: ephemeralKey,
