@@ -11,7 +11,7 @@ import {
 import { useCartStore } from '../store/cart-store';
 import { StatusBar } from 'expo-status-bar';
 import { createOrder, createOrderItem } from '../api/api';
-import { openStripeCheckout, setupStripePaymentSheet } from '../lib/stripe';
+import { initiateC2BPayment } from '../lib/mpesa'; // Import the C2B helper function
 
 type CartItemType = {
   id: number;
@@ -30,41 +30,41 @@ type CartItemProps = {
 };
 
 const CartItem = ({
-  item,
-  onDecrement,
-  onIncrement,
-  onRemove,
-}: CartItemProps) => {
+                    item,
+                    onDecrement,
+                    onIncrement,
+                    onRemove,
+                  }: CartItemProps) => {
   return (
-    <View style={styles.cartItem}>
-      <Image source={{ uri: item.heroImage }} style={styles.itemImage} />
-      <View style={styles.itemDetails}>
-        <Text style={styles.itemTitle}>{item.title}</Text>
-        <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
-        <View style={styles.quantityContainer}>
-          <TouchableOpacity
-            onPress={() => onDecrement(item.id)}
-            style={styles.quantityButton}
-          >
-            <Text style={styles.quantityButtonText}>-</Text>
-          </TouchableOpacity>
-          <Text style={styles.itemQuantity}>{item.quantity}</Text>
-          <TouchableOpacity
-            onPress={() => onIncrement(item.id)}
-            style={styles.quantityButton}
-          >
-            <Text style={styles.quantityButtonText}>+</Text>
-          </TouchableOpacity>
+      <View style={styles.cartItem}>
+        <Image source={{ uri: item.heroImage }} style={styles.itemImage} />
+        <View style={styles.itemDetails}>
+          <Text style={styles.itemTitle}>{item.title}</Text>
+          <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+          <View style={styles.quantityContainer}>
+            <TouchableOpacity
+                onPress={() => onDecrement(item.id)}
+                style={styles.quantityButton}
+            >
+              <Text style={styles.quantityButtonText}>-</Text>
+            </TouchableOpacity>
+            <Text style={styles.itemQuantity}>{item.quantity}</Text>
+            <TouchableOpacity
+                onPress={() => onIncrement(item.id)}
+                style={styles.quantityButton}
+            >
+              <Text style={styles.quantityButtonText}>+</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
-      <TouchableOpacity
-        onPress={() => onRemove(item.id)}
-        style={styles.removeButton}
-      >
-        <Text style={styles.removeButtonText}>Remove</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity
+            onPress={() => onRemove(item.id)}
+            style={styles.removeButton}
+        >
+          <Text style={styles.removeButtonText}>Remove</Text>
+        </TouchableOpacity>
+      </View>
   );
 };
 
@@ -80,74 +80,80 @@ export default function Cart() {
 
   const { mutateAsync: createSupabaseOrder } = createOrder();
   const { mutateAsync: createSupabaseOrderItem } = createOrderItem();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleCheckout = async () => {
+    setIsLoading(true);
     const totalPrice = parseFloat(getTotalPrice());
 
     try {
-      await setupStripePaymentSheet(Math.floor(totalPrice * 100));
+      // Step 1: Initiate C2B payment
+      const response = await initiateC2BPayment(
+          "707161122", // Replace with user's phone number (without country code)
+          totalPrice,
+          `TXN_${Date.now()}` // Unique transaction reference
+      );
 
-      const result = await openStripeCheckout();
-
-      if (!result) {
-        Alert.alert('An error occurred while processing the payment');
-        return;
-      }
-
+      // Step 2: Create order in Supabase
       await createSupabaseOrder(
-        { totalPrice },
-        {
-          onSuccess: data => {
-            createSupabaseOrderItem(
-              items.map(item => ({
-                orderId: data.id,
-                productId: item.id,
-                quantity: item.quantity,
-              })),
-              {
-                onSuccess: () => {
-                  alert('Order created successfully');
-                  resetCart();
-                },
-              }
-            );
-          },
-        }
+          { totalPrice },
+          {
+            onSuccess: (data) => {
+              createSupabaseOrderItem(
+                  items.map((item) => ({
+                    orderId: data.id,
+                    productId: item.id,
+                    quantity: item.quantity,
+                  })),
+                  {
+                    onSuccess: () => {
+                      Alert.alert("Success", "Order created successfully");
+                      resetCart(); // Clear the cart after successful payment
+                    },
+                  }
+              );
+            },
+          }
       );
     } catch (error) {
-      console.error(error);
-      alert('An error occurred while creating the order');
+      console.error("Error:", error);
+      Alert.alert("Error", error.message || "An error occurred while creating the order");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
+      <View style={styles.container}>
+        <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
 
-      <FlatList
-        data={items}
-        keyExtractor={item => item.id.toString()}
-        renderItem={({ item }) => (
-          <CartItem
-            item={item}
-            onRemove={removeItem}
-            onIncrement={incrementItem}
-            onDecrement={decrementItem}
-          />
-        )}
-        contentContainerStyle={styles.cartList}
-      />
+        <FlatList
+            data={items}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+                <CartItem
+                    item={item}
+                    onRemove={removeItem}
+                    onIncrement={incrementItem}
+                    onDecrement={decrementItem}
+                />
+            )}
+            contentContainerStyle={styles.cartList}
+        />
 
-      <View style={styles.footer}>
-        <Text style={styles.totalText}>Total: ${getTotalPrice()}</Text>
-        <TouchableOpacity
-          onPress={handleCheckout}
-          style={styles.checkoutButton}
-        >
-          <Text style={styles.checkoutButtonText}>Checkout</Text>
-        </TouchableOpacity>
+        <View style={styles.footer}>
+          <Text style={styles.totalText}>Total: ${getTotalPrice()}</Text>
+          <TouchableOpacity
+              onPress={handleCheckout}
+              style={styles.checkoutButton}
+              disabled={isLoading}
+          >
+            <Text style={styles.checkoutButtonText}>
+              {isLoading ? "Processing..." : "Checkout"}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
   );
 }
 
